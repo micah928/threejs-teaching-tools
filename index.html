@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three.js 教学工具集</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --ink: #1d1d1f;
+    --ink-2: #6e6e73;
+    --ink-3: #86868b;
+    --line: rgba(0,0,0,.08);
+    --accent: #0071e3;
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+      "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    background: rgba(255,255,255,.72);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    height: 52px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { font-weight: 600; font-size: 17px; letter-spacing: -.01em; display:flex; align-items:center; gap:10px; }
+  .brand-dot { width: 14px; height: 14px; border-radius: 4px;
+    background: conic-gradient(from 210deg, #0071e3, #6e40c9, #e8503a, #f5a623, #0071e3); }
+  .nav-links { display:flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 720px){ .nav-links { display:none; } }
+
+  /* ---------- Hero ---------- */
+  .hero { text-align:center; padding: 96px 24px 72px; position: relative; }
+  .hero .eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    background: rgba(0,113,227,.08);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 7vw, 76px);
+    line-height: 1.05; letter-spacing: -.03em; font-weight: 700;
+    background: linear-gradient(180deg, #1d1d1f 30%, #4a4a4f 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(90deg, #0071e3, #6e40c9 50%, #e8503a);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p {
+    font-size: clamp(17px, 2.2vw, 22px); color: var(--ink-2);
+    max-width: 640px; margin: 22px auto 0; line-height: 1.5;
+  }
+  .hero-cta { margin-top: 30px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .pill {
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 12px 24px; border-radius: 999px; font-size: 15px; font-weight: 500;
+    transition: transform .2s ease, background .2s ease;
+  }
+  .pill-primary { background: var(--accent); color:#fff; }
+  .pill-primary:hover { background:#0077ed; transform: translateY(-1px); }
+  .pill-ghost { color: var(--accent); border: 1px solid rgba(0,113,227,.35); }
+  .pill-ghost:hover { background: rgba(0,113,227,.06); }
+
+  /* ---------- Section ---------- */
+  .section { max-width: 1100px; margin: 0 auto; padding: 24px 24px 40px; }
+  .section-head { display:flex; align-items:baseline; justify-content:space-between; margin: 28px 4px 22px; }
+  .section-head h2 { font-size: 30px; letter-spacing:-.02em; font-weight:700; }
+  .section-head span { color: var(--ink-3); font-size: 14px; }
+
+  /* ---------- Grid + Cards ---------- */
+  .grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 26px; }
+  @media (max-width: 820px){ .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    position: relative;
+    background: rgba(255,255,255,.78);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255,255,255,.6);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06);
+    transition: transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s ease;
+    cursor: pointer;
+    display:flex; flex-direction:column;
+    opacity: 0; transform: translateY(24px);
+  }
+  .card.in { opacity:1; transform: translateY(0); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), box-shadow .4s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 2px 4px rgba(0,0,0,.05), 0 24px 48px rgba(0,0,0,.10); }
+  .card:active { transform: translateY(-1px) scale(.995); }
+
+  .thumb { width:100%; height: 220px; display:block; }
+  .thumb svg { width:100%; height:100%; display:block; }
+
+  .body { padding: 22px 24px 22px; display:flex; flex-direction:column; gap: 8px; flex:1; }
+  .body h3 { font-size: 20px; font-weight: 650; letter-spacing:-.01em; display:flex; align-items:center; justify-content:space-between; }
+  .body p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top: 4px; }
+  .tag { font-size: 12px; color: var(--ink-2); background: rgba(0,0,0,.04); padding: 4px 10px; border-radius: 999px; }
+  .foot-row { display:flex; align-items:center; justify-content:space-between; margin-top: 12px; }
+  .open-link { display:inline-flex; align-items:center; gap:6px; color: var(--accent); font-size:14.5px; font-weight:500; }
+  .open-link svg { transition: transform .2s ease; }
+  .card:hover .open-link svg { transform: translateX(3px); }
+  .port { font-size:12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  .copy-btn {
+    position:absolute; top:14px; right:14px;
+    width:32px; height:32px; border-radius:50%;
+    background: rgba(255,255,255,.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0,0,0,.06);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; opacity:0; transition: opacity .2s ease, transform .2s ease;
+  }
+  .card:hover .copy-btn { opacity:1; }
+  .copy-btn:hover { transform: scale(1.06); }
+
+  /* ---------- Footer ---------- */
+  footer { text-align:center; padding: 60px 24px 48px; color: var(--ink-3); font-size: 12.5px; line-height: 1.8; }
+  footer code { background: #e8e8ed; padding: 2px 7px; border-radius: 5px; color: var(--ink); font-size: 12px; }
+  .divider { max-width:1100px; margin: 0 auto; height:1px; background: var(--line); }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(29,29,31,.92); color:#fff; padding: 10px 20px; border-radius: 999px;
+    font-size: 13.5px; opacity:0; pointer-events:none; transition: all .3s cubic-bezier(.2,.7,.2,1);
+    backdrop-filter: blur(10px);
+  }
+  .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+  body.release .copy-btn { display: none !important; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><span class="brand-dot"></span>教学工具集</div>
+    <div class="nav-links">
+      <a href="#math">数学</a><a href="#physics">物理</a><a href="#chem">化学</a><a href="#bio">生物</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">● 4 个可交互模型 · 持续更新</div>
+  <h1>让抽象概念<br><span class="grad">触手可及</span></h1>
+  <p>基于 Three.js 打造的初中数学、物理、化学、生物 3D 互动模型。拖动、旋转、调节参数，直观理解每一个公式背后的几何与空间关系。</p>
+  <div class="hero-cta">
+    <a class="pill pill-primary" href="#tools">浏览全部工具</a>
+    <a class="pill pill-ghost" href="#how">如何使用 ›</a>
+  </div>
+</header>
+
+<div class="divider"></div>
+
+<main class="section" id="tools">
+  <div class="section-head"><h2>全部工具</h2><span>点击卡片直接打开</span></div>
+  <div class="grid">
+
+    <!-- 长方体 -->
+    <article class="card" id="math" data-href="./长方体/index.html" data-cmd="cd 长方体 ; npm run dev">
+      <div class="thumb">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#eaf1ff"/><stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+            <linearGradient id="f1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#7ab0ff"/><stop offset="100%" stop-color="#4c8bf5"/>
+            </linearGradient>
+            <linearGradient id="f2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#6fdcae"/><stop offset="100%" stop-color="#39b98a"/>
+            </linearGradient>
+            <linearGradient id="f3" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffb27a"/><stop offset="100%" stop-color="#f58a4c"/>
+            </linearGradient>
+          </defs>
+          <rect width="480" height="220" fill="url(#bg1)"/>
+          <g transform="translate(220,66)">
+            <polygon points="40,0 110,30 40,60 -30,30" fill="url(#f1)"/>
+            <polygon points="-30,30 40,60 40,130 -30,100" fill="url(#f2)"/>
+            <polygon points="40,60 110,30 110,100 40,130" fill="url(#f3)"/>
+            <line x1="40" y1="0" x2="40" y2="130" stroke="#fff" stroke-width="1" opacity=".45"/>
+            <line x1="-30" y1="30" x2="110" y2="30" stroke="#fff" stroke-width="1" opacity=".45"/>
+          </g>
+          <g fill="#86868b" font-size="13" font-weight="500">
+            <text x="240" y="212">a</text><text x="350" y="128">b</text><text x="350" y="72">c</text>
+          </g>
+          <g stroke="#c7c7cc" stroke-width="1.2" fill="none">
+            <line x1="252" y1="204" x2="352" y2="204"/>
+            <line x1="252" y1="200" x2="252" y2="208"/><line x1="352" y1="200" x2="352" y2="208"/>
+            <line x1="352" y1="118" x2="352" y2="148"/>
+            <line x1="348" y1="118" x2="356" y2="118"/><line x1="348" y1="148" x2="356" y2="148"/>
+          </g>
+          <text x="56" y="46" font-size="15" font-weight="600" fill="#4c8bf5">S = 2(ab+bc+ca)</text>
+          <text x="56" y="70" font-size="15" font-weight="600" fill="#39b98a">V = abc</text>
+        </svg>
+      </div>
+      <button class="copy-btn" data-copy aria-label="复制启动命令" title="复制启动命令">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <div class="body">
+        <h3>长方体 · 表面积与体积</h3>
+        <p>滑块调节长、宽、高，3D 实时变形；逐行分解表面积与体积公式，识别正方体特例。</p>
+        <div class="tags"><span class="tag">数学</span><span class="tag">几何</span><span class="tag">公式推导</span></div>
+        <div class="foot-row">
+          <span class="open-link">打开工具
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </span>
+          <span class="port">:5173</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 杠杆 -->
+    <article class="card" id="physics" data-href="./杠杆/index.html" data-cmd="cd 杠杆 ; npm run dev">
+      <div class="thumb">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fff3e8"/><stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+            <linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5a78b8"/><stop offset="100%" stop-color="#33507a"/>
+            </linearGradient>
+          </defs>
+          <rect width="480" height="220" fill="url(#bg2)"/>
+          <polygon points="240,86 270,138 210,138" fill="#5a6b8c" opacity=".85"/>
+          <circle cx="240" cy="86" r="6" fill="#f4c542"/>
+          <g transform="rotate(-5 240 80)">
+            <rect x="100" y="76" width="280" height="9" rx="3" fill="url(#beamG)"/>
+            <g fill="#9fb3d9">
+              <rect x="130" y="74" width="2" height="13" rx="1"/><rect x="170" y="74" width="2" height="13" rx="1"/>
+              <rect x="210" y="74" width="2" height="13" rx="1"/><rect x="270" y="74" width="2" height="13" rx="1"/>
+              <rect x="310" y="74" width="2" height="13" rx="1"/><rect x="350" y="74" width="2" height="13" rx="1"/>
+            </g>
+          </g>
+          <line x1="120" y1="98" x2="120" y2="146" stroke="#e8453c" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="114,142 126,142 120,154" fill="#e8453c"/>
+          <text x="110" y="172" fill="#e8453c" font-size="15" font-weight="700">F₁</text>
+          <line x1="360" y1="98" x2="360" y2="130" stroke="#39b98a" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="354,126 366,126 360,138" fill="#39b98a"/>
+          <text x="352" y="158" fill="#39b98a" font-size="15" font-weight="700">F₂</text>
+          <g fill="#86868b" font-size="13" font-weight="500">
+            <text x="175" y="178">L₁</text><text x="300" y="178">L₂</text>
+          </g>
+          <text x="240" y="204" fill="#1d1d1f" font-size="16" font-weight="600" text-anchor="middle">F₁ × L₁ = F₂ × L₂</text>
+        </svg>
+      </div>
+      <button class="copy-btn" data-copy aria-label="复制启动命令" title="复制启动命令">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <div class="body">
+        <h3>杠杆平衡 · F₁L₁ = F₂L₂</h3>
+        <p>调节两侧力与力臂，3D 杠杆自动倾斜或平衡；实时验证力矩等式，一键配平演示。</p>
+        <div class="tags"><span class="tag">物理</span><span class="tag">简单机械</span><span class="tag">力矩</span></div>
+        <div class="foot-row">
+          <span class="open-link">打开工具
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </span>
+          <span class="port">:5178</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- 分子 -->
+    <article class="card" id="chem" data-href="./分子结构/index.html" data-cmd="cd 分子结构 ; npm run dev">
+      <div class="thumb">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#eef4ff"/><stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+            <radialGradient id="oG" cx=".35" cy=".3" r=".8">
+              <stop offset="0%" stop-color="#ff7a6f"/><stop offset="100%" stop-color="#e8453c"/>
+            </radialGradient>
+            <radialGradient id="hG" cx=".35" cy=".3" r=".8">
+              <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfcfcf"/>
+            </radialGradient>
+            <radialGradient id="cG" cx=".35" cy=".3" r=".8">
+              <stop offset="0%" stop-color="#555"/><stop offset="100%" stop-color="#1a1a1a"/>
+            </radialGradient>
+          </defs>
+          <rect width="480" height="220" fill="url(#bg3)"/>
+          <line x1="225" y1="115" x2="170" y2="88" stroke="#b9c4d8" stroke-width="5" stroke-linecap="round"/>
+          <line x1="225" y1="115" x2="280" y2="88" stroke="#b9c4d8" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="170" cy="88" r="19" fill="url(#hG)"/>
+          <circle cx="280" cy="88" r="19" fill="url(#hG)"/>
+          <text x="170" y="93" fill="#333" font-size="13" font-weight="700" text-anchor="middle">H</text>
+          <text x="280" y="93" fill="#333" font-size="13" font-weight="700" text-anchor="middle">H</text>
+          <circle cx="225" cy="115" r="27" fill="url(#oG)"/>
+          <text x="225" y="121" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">O</text>
+          <path d="M 186 100 Q 225 70 264 100" stroke="#f4c542" stroke-width="1.6" fill="none"/>
+          <text x="225" y="62" fill="#f4c542" font-size="12.5" font-weight="600" text-anchor="middle">104.5°</text>
+          <g transform="translate(372,115)">
+            <line x1="0" y1="0" x2="22" y2="-22" stroke="#b9c4d8" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="0" y1="0" x2="-22" y2="-22" stroke="#b9c4d8" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="0" y1="0" x2="0" y2="28" stroke="#b9c4d8" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="0" y1="0" x2="28" y2="10" stroke="#b9c4d8" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="0" cy="0" r="17" fill="url(#cG)"/>
+            <text x="0" y="5" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">C</text>
+            <circle cx="22" cy="-22" r="11" fill="url(#hG)"/><circle cx="-22" cy="-22" r="11" fill="url(#hG)"/>
+            <circle cx="0" cy="28" r="11" fill="url(#hG)"/><circle cx="28" cy="10" r="11" fill="url(#hG)"/>
+          </g>
+        </svg>
+      </div>
+      <button class="copy-btn" data-copy aria-label="复制启动命令" title="复制启动命令">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <div class="body">
+        <h3>分子 3D 结构 · 键角与构型</h3>
+        <p>水 H₂O、CO₂、CH₄、NH₃ 一键切换，球棍模型 360° 旋转；标注键角与 VSEPR 空间构型。</p>
+        <div class="tags"><span class="tag">化学</span><span class="tag">球棍模型</span><span class="tag">VSEPR</span></div>
+        <div class="foot-row">
+          <span class="open-link">打开工具
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </span>
+          <span class="port">:5179</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- DNA -->
+    <article class="card" id="bio" data-href="./DNA双螺旋/index.html" data-cmd="cd DNA双螺旋 ; npm run dev">
+      <div class="thumb">
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg4" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#eefaf4"/><stop offset="100%" stop-color="#ffffff"/>
+            </linearGradient>
+          </defs>
+          <rect width="480" height="220" fill="url(#bg4)"/>
+          <path d="M 205 15 C 245 50, 165 75, 205 110 C 245 145, 165 170, 205 205" stroke="#d9c9a3" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M 245 15 C 205 50, 285 75, 245 110 C 205 145, 285 170, 245 205" stroke="#d9c9a3" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <g stroke-width="6" stroke-linecap="round">
+            <line x1="199" y1="37" x2="251" y2="37" stroke="#3fbf5f"/>
+            <line x1="199" y1="37" x2="251" y2="37" stroke="#e8453c" stroke-dasharray="4,2.5" stroke-width="4"/>
+            <line x1="215" y1="68" x2="235" y2="68" stroke="#3f6fe8"/>
+            <line x1="215" y1="68" x2="235" y2="68" stroke="#f4c542" stroke-dasharray="4,2.5" stroke-width="4"/>
+            <line x1="199" y1="110" x2="251" y2="110" stroke="#3fbf5f"/>
+            <line x1="199" y1="110" x2="251" y2="110" stroke="#e8453c" stroke-dasharray="4,2.5" stroke-width="4"/>
+            <line x1="215" y1="150" x2="235" y2="150" stroke="#3f6fe8"/>
+            <line x1="215" y1="150" x2="235" y2="150" stroke="#f4c542" stroke-dasharray="4,2.5" stroke-width="4"/>
+          </g>
+          <g font-size="12" font-weight="700">
+            <text x="172" y="41" fill="#3fbf5f">A</text><text x="258" y="41" fill="#e8453c">T</text>
+            <text x="192" y="72" fill="#3f6fe8">G</text><text x="242" y="72" fill="#f4c542">C</text>
+            <text x="172" y="114" fill="#3fbf5f">A</text><text x="258" y="114" fill="#e8453c">T</text>
+            <text x="192" y="154" fill="#3f6fe8">G</text><text x="242" y="154" fill="#f4c542">C</text>
+          </g>
+          <g font-size="12.5" fill="#86868b">
+            <text x="295" y="41">A–T · 2 氢键</text>
+            <text x="295" y="72">G–C · 3 氢键</text>
+          </g>
+          <g fill="#d9c9a3">
+            <circle cx="205" cy="15" r="6"/><circle cx="245" cy="15" r="6"/>
+            <circle cx="205" cy="205" r="6"/><circle cx="245" cy="205" r="6"/>
+          </g>
+        </svg>
+      </div>
+      <button class="copy-btn" data-copy aria-label="复制启动命令" title="复制启动命令">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <div class="body">
+        <h3>DNA 双螺旋 · 碱基配对</h3>
+        <p>滑块调节碱基对数量，双螺旋 3D 展开；A–T 双氢键 / G–C 三氢键一目了然，实时统计。</p>
+        <div class="tags"><span class="tag">生物</span><span class="tag">分子生物学</span><span class="tag">碱基互补</span></div>
+        <div class="foot-row">
+          <span class="open-link">打开工具
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </span>
+          <span class="port">:5180</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<div class="divider" id="how"></div>
+
+<main class="section">
+  <div class="section-head"><h2>如何使用</h2><span>三步开始</span></div>
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px;" id="steps">
+    <div class="card in" style="cursor:default; padding: 26px 24px; box-shadow:none; background: rgba(255,255,255,.6);">
+      <div style="font-size:28px; font-weight:700; color:var(--accent); letter-spacing:-.02em;">01</div>
+      <h3 style="margin-top:8px;">安装依赖</h3>
+      <p>每个工具都是独立 Vite 工程，首次使用在对应目录运行 <code style="background:#e8e8ed;padding:1px 6px;border-radius:4px;">npm install</code>。</p>
+    </div>
+    <div class="card in" style="cursor:default; padding: 26px 24px; box-shadow:none; background: rgba(255,255,255,.6);">
+      <div style="font-size:28px; font-weight:700; color:var(--accent); letter-spacing:-.02em;">02</div>
+      <h3 style="margin-top:8px;">启动开发服务器</h3>
+      <p>点击卡片右上角复制按钮获取启动命令，粘贴到终端运行即可。</p>
+    </div>
+    <div class="card in" style="cursor:default; padding: 26px 24px; box-shadow:none; background: rgba(255,255,255,.6);">
+      <div style="font-size:28px; font-weight:700; color:var(--accent); letter-spacing:-.02em;">03</div>
+      <h3 style="margin-top:8px;">打开浏览器</h3>
+      <p>访问卡片下方显示的本地端口，即可在课堂上演示交互式 3D 模型。</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  每个项目为独立 Vite + Three.js 工程，首次使用请先 <code>npm install</code>。<br>
+  目录页为纯静态，双击 index.html 即可打开。
+</footer>
+
+<div class="toast" id="toast">已复制启动命令</div>
+
+<script>
+  document.body.classList.add('release');
+  // 滚动浮现
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        const el = e.target;
+        const delay = [...(el.parentElement?.children || [])].indexOf(el) * 80;
+        setTimeout(() => el.classList.add('in'), delay);
+        io.unobserve(el);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.card:not(.in)').forEach(c => io.observe(c));
+
+  // 卡片点击 → 打开工具
+  document.querySelectorAll('.card[data-href]').forEach(card => {
+    card.addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-copy]')) return;
+      window.open(card.dataset.href, '_blank');
+    });
+  });
+
+  // 复制启动命令
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const cmd = btn.closest('.card').dataset.cmd;
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(cmd)
+          .then(() => showToast('已复制：' + cmd))
+          .catch(() => showToast('启动命令：' + cmd));
+      } else {
+        showToast('启动命令：' + cmd);
+      }
+    });
+  });
+</script>
+</body>
+</html>
