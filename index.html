@@ -445,7 +445,7 @@
   document.querySelectorAll('.card[data-href]').forEach(card => {
     card.addEventListener('click', (ev) => {
       if (ev.target.closest('[data-copy]')) return;
-      window.open(card.dataset.href, '_blank');
+      location.href = card.dataset.href;
     });
   });
 
