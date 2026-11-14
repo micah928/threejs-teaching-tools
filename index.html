@@ -146,7 +146,7 @@
     backdrop-filter: blur(10px);
   }
   .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
-  body.release .copy-btn { display: none !important; }
+  body.release .copy-btn, body.release .port { display: none !important; }
 </style>
 </head>
 <body>
@@ -177,7 +177,7 @@
   <div class="grid">
 
     <!-- 长方体 -->
-    <article class="card" id="math" data-href="./长方体/index.html" data-cmd="cd 长方体 ; npm run dev">
+    <a class="card" id="math" href="./长方体/index.html">
       <div class="thumb">
         <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -229,10 +229,10 @@
           <span class="port">:5173</span>
         </div>
       </div>
-    </article>
+    </a>
 
     <!-- 杠杆 -->
-    <article class="card" id="physics" data-href="./杠杆/index.html" data-cmd="cd 杠杆 ; npm run dev">
+    <a class="card" id="physics" href="./杠杆/index.html">
       <div class="thumb">
         <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -280,10 +280,10 @@
           <span class="port">:5178</span>
         </div>
       </div>
-    </article>
+    </a>
 
     <!-- 分子 -->
-    <article class="card" id="chem" data-href="./分子结构/index.html" data-cmd="cd 分子结构 ; npm run dev">
+    <a class="card" id="chem" href="./分子结构/index.html">
       <div class="thumb">
         <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -337,10 +337,10 @@
           <span class="port">:5179</span>
         </div>
       </div>
-    </article>
+    </a>
 
     <!-- DNA -->
-    <article class="card" id="bio" data-href="./DNA双螺旋/index.html" data-cmd="cd DNA双螺旋 ; npm run dev">
+    <a class="card" id="bio" href="./DNA双螺旋/index.html">
       <div class="thumb">
         <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -391,7 +391,7 @@
           <span class="port">:5180</span>
         </div>
       </div>
-    </article>
+    </a>
 
   </div>
 </main>
